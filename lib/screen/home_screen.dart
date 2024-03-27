@@ -1,8 +1,21 @@
 import 'package:calender_scheduler/component/calendar.dart';
+import 'package:calender_scheduler/component/today_banner.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  DateTime selectedDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day
+  );
+  DateTime focusedDay = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -10,10 +23,27 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Calendar(),
+            Calendar(
+              selectedDay: selectedDay,
+              focusedDay: focusedDay,
+              onDaySelected: onDaySelected,
+            ),
+            SizedBox(height: 8.0),
+            TodayBanner(
+                selectedDay: selectedDay,
+                scheduleCount: 3,
+            ),
           ],
         ),
-      )
+      ),
     );
+  }
+
+  onDaySelected(DateTime selectedDay, DateTime focusedDay){
+    setState(() {
+      this.selectedDay = selectedDay;
+      // 전,다음 달 날짜를 눌렀을 경우, 달력도 움직이게 하는 것
+      this.focusedDay = selectedDay;
+    });
   }
 }
