@@ -16,10 +16,22 @@ part 'drift_database.g.dart';
     CategoryColors,
   ],
 )
-
 // 상속에 _$만 만들면 데이터베이스를 만들어서 사용할 수 있음.
-class LocalDatabase extends _$LocalDatabase{
+class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(_openConnection());
+
+  Future<int> createSchedule(SchedulesCompanion data) =>
+      into(schedules).insert(data);
+  
+  Future<int> createCategoryColor(CategoryColorsCompanion data) =>
+      into(categoryColors).insert(data);
+
+  Future<List<CategoryColor>> getCategoryColors() =>
+      select(categoryColors).get();
+
+  // 데이터베이스 설정한 상태 버전
+  @override
+  int get schemaVersion => 1;
 }
 
 LazyDatabase _openConnection() {
