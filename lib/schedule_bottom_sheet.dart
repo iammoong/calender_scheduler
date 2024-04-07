@@ -1,6 +1,10 @@
 import 'package:calender_scheduler/component/custom_text_field.dart';
 import 'package:calender_scheduler/const/colors.dart';
+import 'package:calender_scheduler/database/drift_database.dart';
+import 'package:calender_scheduler/model/category_color.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:calender_scheduler/database/drift_database.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
   const ScheduleBottomSheet({super.key});
@@ -21,7 +25,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: SafeArea(
@@ -38,24 +42,42 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                      _Time(
-                        onStartSaved: (String? val){
-                          startTime = int.parse(val!);
-                        },
-                        onEndSaved: (String? val){
-                          endTime = int.parse(val!);
-                        },
-                      ),
-                    SizedBox(height: 16.0,),
-                      _Contents(
-                        onSaved: (String? val){
-                          content = val;
-                        },
-                      ),
-                    SizedBox(height: 16.0,),
-                    _ColorPicker(),
-                    SizedBox(height: 8.0,),
-                    _SaveButton(onPressed: onSavePressed,
+                    _Time(
+                      onStartSaved: (String? val) {
+                        startTime = int.parse(val!);
+                      },
+                      onEndSaved: (String? val) {
+                        endTime = int.parse(val!);
+                      },
+                    ),
+                    SizedBox(
+                      height: 16.0,
+                    ),
+                    _Contents(
+                      onSaved: (String? val) {
+                        content = val;
+                      },
+                    ),
+                    SizedBox(
+                      height: 16.0,
+                    ),
+                    FutureBuilder<List<CategoryColor>>(
+                        future: GetIt.I<LocalDatabase>().getCategoryColors(),
+                        builder: (context, snapshot) {
+                          return _ColorPicker(
+                            colors: snapshot.hasData
+                                ? snapshot.data!
+                                    .map((e) =>
+                                        Color(int.parse('FF${e.hexCode}', radix: 16)))
+                                    .toList()
+                                : [],
+                          );
+                        }),
+                    SizedBox(
+                      height: 8.0,
+                    ),
+                    _SaveButton(
+                      onPressed: onSavePressed,
                     ),
                   ],
                 ),
@@ -67,17 +89,16 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     );
   }
 
-  void onSavePressed(){
+  void onSavePressed() {
     //formKey는 생성을 했는데
     //Form 위젯과 결합을 안 했을 때
-    if(formKey.currentState == null) {
+    if (formKey.currentState == null) {
       return;
     }
 
-    if(formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       print('에러가 없습니다.');
       formKey.currentState!.save();
-
     } else {
       print('에러가 있습니다.');
     }
@@ -88,31 +109,26 @@ class _Time extends StatelessWidget {
   final FormFieldSetter<String> onStartSaved;
   final FormFieldSetter<String> onEndSaved;
 
-  const _Time({
-    required this.onStartSaved,
-    required this.onEndSaved,
-    Key? key}
-      ) : super (key: key);
+  const _Time({required this.onStartSaved, required this.onEndSaved, Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return  Row(
+    return Row(
       children: [
         Expanded(
             child: CustomTextField(
-              label: '시작 시간',
-              isTime: true,
-              onSaved: onStartSaved,
-            )
-        ),
+          label: '시작 시간',
+          isTime: true,
+          onSaved: onStartSaved,
+        )),
         SizedBox(width: 16.0),
         Expanded(
             child: CustomTextField(
-              label: '마감 시간',
-              isTime: true,
-              onSaved: onEndSaved,
-            )
-        ),
+          label: '마감 시간',
+          isTime: true,
+          onSaved: onEndSaved,
+        )),
       ],
     );
   }
@@ -121,14 +137,11 @@ class _Time extends StatelessWidget {
 class _Contents extends StatelessWidget {
   final FormFieldSetter<String> onSaved;
 
-  const _Contents({
-    required this.onSaved,
-    Key? key
-  }) :super (key: key);
+  const _Contents({required this.onSaved, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return  Expanded(
+    return Expanded(
       child: CustomTextField(
         label: '내용',
         isTime: false,
@@ -139,24 +152,22 @@ class _Contents extends StatelessWidget {
 }
 
 class _ColorPicker extends StatelessWidget {
-  const _ColorPicker({super.key});
+  final List<Color> colors;
+
+  const _ColorPicker({
+    required this.colors,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 8.0,
       runSpacing: 10.0,
-      children: [
-        renderColor(Colors.red),
-        renderColor(Colors.orange),
-        renderColor(Colors.yellow),
-        renderColor(Colors.green),
-        renderColor(Colors.blue),
-        renderColor(Colors.indigo),
-        renderColor(Colors.purple),
-      ],
+      children: colors.map((e) => renderColor(e)).toList(),
     );
   }
+
   Widget renderColor(Color color) {
     return Container(
       decoration: BoxDecoration(
@@ -172,10 +183,7 @@ class _ColorPicker extends StatelessWidget {
 class _SaveButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const _SaveButton({
-    required this.onPressed,
-    Key? key}
-      ) : super(key: key);
+  const _SaveButton({required this.onPressed, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -194,4 +202,3 @@ class _SaveButton extends StatelessWidget {
     );
   }
 }
-

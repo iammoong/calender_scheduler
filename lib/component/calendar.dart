@@ -40,6 +40,7 @@ class Calendar extends StatelessWidget {
         ),
       ),
       calendarStyle: CalendarStyle(
+
         isTodayHighlighted: false,
         defaultDecoration: defaultBoxDeco,
         weekendDecoration: defaultBoxDeco,
