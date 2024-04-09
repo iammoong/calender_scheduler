@@ -2,8 +2,10 @@ import 'package:calender_scheduler/component/calendar.dart';
 import 'package:calender_scheduler/component/schedule_card.dart';
 import 'package:calender_scheduler/component/today_banner.dart';
 import 'package:calender_scheduler/const/colors.dart';
+import 'package:calender_scheduler/database/drift_database.dart';
 import 'package:calender_scheduler/schedule_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
             context: context,
             isScrollControlled: true,
             builder: (_){
-              return ScheduleBottomSheet();
+              return ScheduleBottomSheet(
+                selectedDate: selectedDay,
+              );
             },
         );
       },
@@ -77,18 +81,24 @@ class _ScheduleList extends StatelessWidget {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: ListView.separated(
-            itemCount: 5,
-            separatorBuilder: (context, index) {
-              return SizedBox(height: 8.0);
-            },
-            itemBuilder: (context, index){
-              return  ScheduleCard(
-                  startTime: 8,
-                  endTime: 9,
-                  content: "프로그래밍 공부",
-                  color: Colors.red);
-            }
+        child: StreamBuilder<List<Schedule>>(
+          stream: GetIt.I<LocalDatabase>().watchSchedule(),
+          builder: (context, snapshot) {
+            print(snapshot.data);
+            return ListView.separated(
+                itemCount: 5,
+                separatorBuilder: (context, index) {
+                  return SizedBox(height: 8.0);
+                },
+                itemBuilder: (context, index){
+                  return  ScheduleCard(
+                      startTime: 8,
+                      endTime: 9,
+                      content: "프로그래밍 공부",
+                      color: Colors.red);
+                }
+            );
+          }
         ),
       ),
     );
