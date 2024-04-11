@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  DateTime selectedDay = DateTime(
+  DateTime selectedDay = DateTime.utc(
     DateTime.now().year,
     DateTime.now().month,
     DateTime.now().day
@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 scheduleCount: 3,
             ),
             SizedBox(height: 8.0),
-            _ScheduleList(),
+            _ScheduleList(selectedDate: selectedDay,),
           ],
         ),
       ),
@@ -74,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _ScheduleList extends StatelessWidget {
-  const _ScheduleList({super.key});
+  final DateTime selectedDate;
+  const _ScheduleList({required this.selectedDate, Key? key}) : super (key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -82,19 +83,29 @@ class _ScheduleList extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: StreamBuilder<List<Schedule>>(
-          stream: GetIt.I<LocalDatabase>().watchSchedule(),
+          stream: GetIt.I<LocalDatabase>().watchSchedule(selectedDate),
           builder: (context, snapshot) {
-            print(snapshot.data);
+            if(!snapshot.hasData) {
+              return Center(
+                  child: CircularProgressIndicator()
+              );
+            }
+            if(snapshot.hasData && snapshot.data!.isEmpty) {
+              return Center(
+                child: Text('스케줄이 없습니다.'),
+              );
+            }
             return ListView.separated(
-                itemCount: 5,
+                itemCount: snapshot.data!.length,
                 separatorBuilder: (context, index) {
                   return SizedBox(height: 8.0);
                 },
                 itemBuilder: (context, index){
+                  final schedule = snapshot.data![index];
                   return  ScheduleCard(
-                      startTime: 8,
-                      endTime: 9,
-                      content: "프로그래밍 공부",
+                      startTime: schedule.startTime,
+                      endTime: schedule.endTime,
+                      content:schedule.content,
                       color: Colors.red);
                 }
             );

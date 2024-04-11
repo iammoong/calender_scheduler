@@ -29,8 +29,15 @@ class LocalDatabase extends _$LocalDatabase {
   Future<List<CategoryColor>> getCategoryColors() =>
       select(categoryColors).get();
 
-  Stream<List<Schedule>> watchSchedule() =>
-      select(schedules).watch();
+  Stream<List<Schedule>> watchSchedule(DateTime date) =>
+      (select(schedules)..where((tbl) => tbl.date.equals(date))).watch();
+    /*final query = select(schedules);
+    query.where((tbl) => tbl.date.equals(date));
+    return query.watch();*/
+
+
+
+
 
   // 데이터베이스 설정한 상태 버전
   @override
