@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:calender_scheduler/model/category_color.dart';
 import 'package:calender_scheduler/model/schedule.dart';
+import 'package:calender_scheduler/model/schedule_with_color.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
@@ -22,22 +23,44 @@ class LocalDatabase extends _$LocalDatabase {
 
   Future<int> createSchedule(SchedulesCompanion data) =>
       into(schedules).insert(data);
-  
+
   Future<int> createCategoryColor(CategoryColorsCompanion data) =>
       into(categoryColors).insert(data);
 
   Future<List<CategoryColor>> getCategoryColors() =>
       select(categoryColors).get();
 
-  Stream<List<Schedule>> watchSchedule(DateTime date) =>
-      (select(schedules)..where((tbl) => tbl.date.equals(date))).watch();
-    /*final query = select(schedules);
+  Future<int> removeSchedule(int id) =>
+      (delete(schedules)..where((tbl) => tbl.id.equals(id))).go();
+
+  Stream<List<ScheduleWithColor>> watchSchedule(DateTime date) {
+    final query = select(schedules).join([
+      innerJoin(categoryColors, categoryColors.id.equalsExp(schedules.colorId))
+    ]);
+
+    query.where(schedules.date.equals(date));
+
+    query.orderBy([
+      OrderingTerm.asc(schedules.startTime),
+    ]);
+
+    return query.watch().map(
+          (rows) => rows
+              .map(
+                (row) => ScheduleWithColor(
+                  schedule: row.readTable(schedules),
+                  categoryColor: row.readTable(categoryColors),
+                ),
+              )
+              .toList(),
+        );
+
+    //return (select(schedules)..where((tbl) => tbl.date.equals(date))).watch();
+  }
+
+  /*final query = select(schedules);
     query.where((tbl) => tbl.date.equals(date));
     return query.watch();*/
-
-
-
-
 
   // 데이터베이스 설정한 상태 버전
   @override
