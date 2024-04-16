@@ -62,6 +62,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
               selectedColorId = snapshot.data!.colorId;
             }
 
+            // 스케줄러 생성 배너
             return SafeArea(
               child: Container(
                 height: MediaQuery.of(context).size.height / 2 + bottomInset,
@@ -141,8 +142,8 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
       return;
     }
 
+    // 에러가 없을 때 유효성 검사를 진행한다.
     if (formKey.currentState!.validate()) {
-      print('에러가 없습니다.');
       formKey.currentState!.save();
 
       if(widget.scheduleId == null) {
@@ -170,7 +171,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
 
 
       Navigator.of(context).pop();
-    } else {
+    } else { // 에러가 있을 경우 로그에 남긴다.
       print('에러가 있습니다.');
     }
   }
